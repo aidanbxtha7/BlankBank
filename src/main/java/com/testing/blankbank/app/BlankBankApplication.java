@@ -1,0 +1,14 @@
+package com.testing.blankbank.app;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+public class BlankBankApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(BlankBankApplication.class, args);
+    }
+
+}
