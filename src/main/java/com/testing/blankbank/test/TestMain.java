@@ -7,6 +7,13 @@ import com.testing.blankbank.domain.FixedDepositAccount;
 import com.testing.blankbank.domain.SavingsAccount;
 import com.testing.blankbank.service.TaxReport;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class TestMain {
     public static void main(String[] args) {
         Client client = new Client();
@@ -14,6 +21,21 @@ public class TestMain {
         client.setSurname("Botha");
         client.setId("123456789");
         client.setAccountNumber("123456789");
+        List<String> transactions = new ArrayList<>();
+        Set<String> accounts = new HashSet<>();
+        Map<String, Double> balances = new HashMap<>();
+
+        transactions.add("Deposit 1000");
+        transactions.add("Withdraw 400");
+        transactions.add("Deposit 2000");
+
+        accounts.add("123456789");
+        accounts.add("111111111");
+        accounts.add("123456789");
+        accounts.add("222222222");
+
+        balances.put("123456789", 1000.0);
+        balances.put("111111111", 0.0);
 
         Account savings = new SavingsAccount();
         Account cheque  = new ChequeAccount();
@@ -59,5 +81,21 @@ public class TestMain {
         System.out.println(report.WriteTaxReport(savings));
         System.out.println(report.WriteTaxReport(cheque));
         System.out.println(report.WriteTaxReport(fixed));
+
+        System.out.println("\n");
+
+        System.out.println("transaction 1: " + transactions.get(0));
+        System.out.println("transaction 2: " + transactions.get(2));
+        System.out.println("transaction 3: " + transactions.get(1));
+        System.out.println("\n");
+
+        for (String account : accounts) {
+            System.out.println(account);
+        }
+
+        System.out.println("\n");
+
+        System.out.println(balances.get("123456789"));
+        System.out.println(balances.get("111111111"));
     }
 }
