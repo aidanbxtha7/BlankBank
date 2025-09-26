@@ -14,6 +14,6 @@ public class ChequeAccount extends Account {
 
     @Override
     public String toString() {
-        return "Cheque Account";
+        return "Cheque Account " + "\naccount number: "+ getAccountNumber() + "\n" + "Balance: " + getBalance();
     }
 }

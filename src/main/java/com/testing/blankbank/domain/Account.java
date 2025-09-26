@@ -2,7 +2,7 @@ package com.testing.blankbank.domain;
 
 import com.testing.blankbank.service.TaxService;
 
-public abstract class Account implements Taxable {
+public abstract class Account implements Taxable, Comparable<Account> {
 
     private String accountNumber;
     private double balance;
@@ -35,4 +35,15 @@ public abstract class Account implements Taxable {
         TaxService taxService = new TaxService();
         return taxService.calculateTax(this);
     }
+
+    @Override
+    public int compareTo(Account account) {
+        return Double.compare(getBalance(), account.getBalance());
+    }
+
+    @Override
+    public String toString() {
+        return "Account: " + accountNumber + "\n" + "Balance: " + balance;
+    }
+
 }

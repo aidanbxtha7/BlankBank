@@ -14,6 +14,6 @@ public class FixedDepositAccount extends Account {
 
     @Override
     public String toString() {
-        return "Fixed Deposit Account";
+        return "Fixed Account " + "\naccount number: "+ getAccountNumber() + "\n" + "Balance: " + getBalance();
     }
 }
