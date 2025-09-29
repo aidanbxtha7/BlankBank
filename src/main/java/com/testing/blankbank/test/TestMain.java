@@ -2,13 +2,13 @@ package com.testing.blankbank.test;
 
 import com.testing.blankbank.domain.Account;
 import com.testing.blankbank.domain.ChequeAccount;
-import com.testing.blankbank.domain.Client;
 import com.testing.blankbank.domain.FixedDepositAccount;
 import com.testing.blankbank.domain.SavingsAccount;
 import com.testing.blankbank.service.AccountService;
 import com.testing.blankbank.service.TaxReport;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,148 +20,184 @@ import java.util.Set;
 public class TestMain {
 
     public static void main(String[] args) {
-        // --- Setup demo client & simple collections ---
-        Client client = new Client();
-        client.setName("Aidan");
-        client.setSurname("Botha");
-        client.setId("9001015009087");
-        client.setAccountNumber("1234567890");
+        testDepositWithdraw();
+        testTaxCalculations();
+        testTaxReports();
+        testCollections();
+        testSorting();
+        testAccountService();
+        testPrintBalances();
+    }
 
-        List<String> transactions = new ArrayList<>();
-        transactions.add("Deposit 1,000");
-        transactions.add("Withdraw 400");
-        transactions.add("Deposit 2,000");
-
-        // Intentionally includes duplicates to demonstrate Set behavior
-        Set<String> accounts = new HashSet<>();
-        accounts.add("1234567890");
-        accounts.add("1111111111");
-        accounts.add("1234567890"); // duplicate
-        accounts.add("2222222222");
-
-        Map<String, Double> balances = new HashMap<>();
-        balances.put("1234567890", 1_000.00);
-        balances.put("1111111111", 0.00);
-
-        // --- Accounts under test ---
-        Account savings = new SavingsAccount();
-        Account cheque  = new ChequeAccount();
-        Account fixed   = new FixedDepositAccount();
-
+    private static void testDepositWithdraw() {
         section("Deposits & Withdrawals");
+
+        Account savings = new SavingsAccount();
+        Account cheque = new ChequeAccount();
+
         savings.deposit(500);
         cheque.deposit(500);
 
-        boolean sOk = savings.withdraw(600); // expect false (would go negative incl. fee)
-        boolean cOk = cheque.withdraw(600);  // expect true (goes to -100)
+        boolean savingsOk = savings.withdraw(600);
+        boolean chequeOk = cheque.withdraw(600);
 
-        kv("Savings ok?", sOk + " | Balance: " + savings.getBalance());
-        kv("Cheque ok?",  cOk + " | Balance: " + cheque.getBalance());
+        kv("Savings withdrawal ok?", savingsOk + " | Balance: " + savings.getBalance());
+        kv("Cheque withdrawal ok?", chequeOk + " | Balance: " + cheque.getBalance());
+    }
 
-        // --- Tax checks at various balances (looped instead of repeated) ---
+    private static void testTaxCalculations() {
         section("Tax Calculations at Different Balances");
+
+        Account savings = new SavingsAccount();
+        Account cheque = new ChequeAccount();
+
         double[] testBalances = {1_000, 10_000, 100_000};
-        for (double b : testBalances) {
-            savings.setBalance(b);
-            cheque.setBalance(b);
-            sub("Balance set to " + b);
-            kv("Savings balance", savings.getBalance());
-            kv("Cheque balance",  cheque.getBalance());
-            kv("Tax on Savings",  savings.getTax());
-            kv("Tax on Cheque",   cheque.getTax());
+
+        for (double balance : testBalances) {
+            savings.setBalance(balance);
+            cheque.setBalance(balance);
+
+            sub("Balance set to " + balance);
+            kv("Savings tax", savings.getTax());
+            kv("Cheque tax", cheque.getTax());
             line();
         }
+    }
 
-        // --- Tax report demo ---
+    private static void testTaxReports() {
         section("Tax Reports");
+
         TaxReport report = new TaxReport();
+        Account savings = new SavingsAccount();
+        Account cheque = new ChequeAccount();
+        Account fixed = new FixedDepositAccount();
+
+        savings.setBalance(1000);
+        cheque.setBalance(1500);
+        fixed.setBalance(2000);
+
         System.out.println(report.WriteTaxReport(savings));
         System.out.println(report.WriteTaxReport(cheque));
         System.out.println(report.WriteTaxReport(fixed));
+    }
 
-        // --- Lists, Sets, Maps quick checks ---
-        section("Transactions (by index, out of order to test access)");
-        System.out.println("transaction 1: " + transactions.get(0));
-        System.out.println("transaction 2: " + transactions.get(2));
-        System.out.println("transaction 3: " + transactions.get(1));
+    private static void testCollections() {
+        section("Collections Demo");
 
-        section("Accounts in Set (duplicates removed)");
-        for (String accountNo : accounts) {
-            System.out.println(accountNo);
-        }
+        List<String> transactions = Arrays.asList("Deposit 1,000", "Withdraw 400", "Deposit 2,000");
+        Set<String> accountNumbers = new HashSet<>(Arrays.asList("1234567890", "1111111111", "1234567890", "2222222222"));
+        Map<String, Double> balances = Map.of("1234567890", 1_000.00, "1111111111", 0.00);
 
-        section("Balances in Map (by key lookup)");
-        System.out.println(balances.get("1234567890"));
-        System.out.println(balances.get("1111111111"));
+        sub("Transactions (accessed out of order)");
+        System.out.println("Transaction 1: " + transactions.get(0));
+        System.out.println("Transaction 3: " + transactions.get(2));
+        System.out.println("Transaction 2: " + transactions.get(1));
 
-        // --- Comparable / sorting test ---
-        section("Comparable Sorting (by Account balance)");
-        savings.setBalance(800);
-        cheque.setBalance(1200);
-        fixed.setBalance(1_000);
-        savings.setAccountNumber("2234567890");
-        cheque.setAccountNumber("1334567890");
-        fixed.setAccountNumber("4444567890");
+        sub("Account Numbers in Set (duplicates removed)");
+        accountNumbers.forEach(System.out::println);
 
-        List<Account> accountsList = new ArrayList<>();
-        accountsList.add(savings);
-        accountsList.add(cheque);
-        accountsList.add(fixed);
+        sub("Balances from Map");
+        balances.forEach((key, value) -> System.out.println(key + ": " + value));
+    }
 
-        Collections.sort(accountsList); // uses Account.compareTo (Double.compare on balance)
+    private static void testSorting() {
+        section("Account Sorting Tests");
 
-        for (Account account : accountsList) {
-            System.out.println(account.toString());
-        }
+        List<Account> accounts = createTestAccounts();
 
-        System.out.println("\n");
-        System.out.println("Sorting by Account Number");
-        System.out.println("\n");
+        sub("Sort by Balance (Natural Order)");
+        Collections.sort(accounts);
+        accounts.forEach(System.out::println);
 
-        Comparator<Account> byAccountNumber =
-                Comparator.comparing(Account::getAccountNumber);
+        sub("Sort by Account Number");
+        accounts.sort(Comparator.comparing(Account::getAccountNumber));
+        accounts.forEach(System.out::println);
 
-        Collections.sort(accountsList, byAccountNumber);
+        sub("Sort by Balance Descending");
+        accounts.sort(Comparator.comparing(Account::getBalance).reversed());
+        accounts.forEach(System.out::println);
+    }
 
-        for (Account account : accountsList) {
-            System.out.println(account.toString());
-        }
+    private static void testAccountService() {
+        section("Account Service Test");
 
-        System.out.println("\n");
-        System.out.println("Sorting by Balance Descending");
-        System.out.println("\n");
-
-        Comparator<Account> byBalanceDesc = Comparator.comparing(Account::getBalance).reversed();
-
-        Collections.sort(accountsList, byBalanceDesc);
-
-        for (Account account : accountsList) {
-            System.out.println(account.toString());
-        }
-
-        Account savings2 = new SavingsAccount();
-        Account cheque2  = new ChequeAccount();
-        Account fixed2   = new FixedDepositAccount();
-
-        savings2.setAccountNumber("777777777");
-        cheque2.setAccountNumber("3333333333");
-        fixed2.setAccountNumber("4444444444");
-        cheque2.setBalance(2.00);
-
-        Map<String, Account> accounts2 = new HashMap<>();
-
-        accounts2.put(savings2.getAccountNumber(), savings2);
-        accounts2.put(cheque2.getAccountNumber(), cheque2);
-        accounts2.put(fixed2.getAccountNumber(), fixed2);
+        Map<String, Account> accountMap = new HashMap<>();
+        Account testAccount = new ChequeAccount();
+        testAccount.setAccountNumber("3333333333");
+        testAccount.setBalance(2.00);
+        accountMap.put(testAccount.getAccountNumber(), testAccount);
 
         AccountService accountService = new AccountService();
 
         try {
-            System.out.println(accountService.findByAccountNumber("3333333333", accounts2));
+            Account found = accountService.findByAccountNumber("3333333333", accountMap);
+            System.out.println("Found account: " + found);
         } catch (Exception e) {
-            System.out.println("Account not found " + e.getMessage());
+            System.out.println("Account not found: " + e.getMessage());
         }
+    }
 
+    private static void testPrintBalances() {
+        section("Print Balances Test");
+
+        TaxReport report = new TaxReport();
+        AccountService service = new AccountService();
+
+        // Create test accounts
+        SavingsAccount s1 = new SavingsAccount();
+        s1.setBalance(500.50);
+        s1.setAccountNumber("SAV001");
+
+        SavingsAccount s2 = new SavingsAccount();
+        s2.setBalance(1200.75);
+        s2.setAccountNumber("SAV002");
+
+        ChequeAccount c1 = new ChequeAccount();
+        c1.setBalance(300.00);
+        c1.setAccountNumber("CHQ001");
+
+        ChequeAccount c2 = new ChequeAccount();
+        c2.setBalance(850.25);
+        c2.setAccountNumber("CHQ002");
+
+        // Test printBalances with different account types
+        List<SavingsAccount> savingsAccounts = Arrays.asList(s1, s2);
+        List<ChequeAccount> chequeAccounts = Arrays.asList(c1, c2);
+        List<Account> mixedAccounts = Arrays.asList(s1, c1, s2, c2);
+
+        sub("Savings Accounts:");
+        report.printBalances(savingsAccounts);
+
+        sub("Cheque Accounts:");
+        report.printBalances(chequeAccounts);
+
+        sub("All Mixed Accounts:");
+        report.printBalances(mixedAccounts);
+
+        // Test addSavings method - adds a new SavingsAccount to the list
+        sub("Testing addSavings - before and after:");
+        List<Account> accountsForTesting = new ArrayList<>(Arrays.asList(s1, c1));
+        System.out.println("Before addSavings: " + accountsForTesting.size() + " accounts");
+        service.addSavings(accountsForTesting);
+        System.out.println("After addSavings: " + accountsForTesting.size() + " accounts");
+        report.printBalances(accountsForTesting);
+    }
+
+    private static List<Account> createTestAccounts() {
+        Account savings = new SavingsAccount();
+        Account cheque = new ChequeAccount();
+        Account fixed = new FixedDepositAccount();
+
+        savings.setBalance(800);
+        savings.setAccountNumber("2234567890");
+
+        cheque.setBalance(1200);
+        cheque.setAccountNumber("1334567890");
+
+        fixed.setBalance(1000);
+        fixed.setAccountNumber("4444567890");
+
+        return Arrays.asList(savings, cheque, fixed);
     }
 
     // --------- tiny helpers for cleaner output ----------
@@ -175,7 +211,7 @@ public class TestMain {
     }
 
     private static void kv(String key, Object val) {
-        System.out.println(String.format("%s: %s", key, val));
+        System.out.println(key + ": " + val);
     }
 
     private static void line() {

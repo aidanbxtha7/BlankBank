@@ -2,6 +2,8 @@ package com.testing.blankbank.service;
 
 import com.testing.blankbank.domain.Account;
 
+import java.util.List;
+
 public class TaxReport {
 
     public String WriteTaxReport(Account account){
@@ -19,5 +21,11 @@ public class TaxReport {
             return report;
         }
         else return null;
+    }
+
+    public void printBalances(List<? extends Account> accounts) {
+        for (Account account : accounts ) {
+            System.out.println(account.toString());
+        }
     }
 }

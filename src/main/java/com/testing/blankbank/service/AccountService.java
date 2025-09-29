@@ -1,8 +1,10 @@
 package com.testing.blankbank.service;
 
 import com.testing.blankbank.domain.Account;
+import com.testing.blankbank.domain.SavingsAccount;
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.util.List;
 import java.util.Map;
 
 public class AccountService {
@@ -14,5 +16,9 @@ public class AccountService {
         }
 
         return account;
+    }
+
+    public void addSavings(List<? super SavingsAccount> accounts) {
+        accounts.add(new SavingsAccount());
     }
 }
