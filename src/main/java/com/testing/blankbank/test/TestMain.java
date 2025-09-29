@@ -5,9 +5,17 @@ import com.testing.blankbank.domain.ChequeAccount;
 import com.testing.blankbank.domain.Client;
 import com.testing.blankbank.domain.FixedDepositAccount;
 import com.testing.blankbank.domain.SavingsAccount;
+import com.testing.blankbank.service.AccountService;
 import com.testing.blankbank.service.TaxReport;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class TestMain {
 
@@ -130,6 +138,30 @@ public class TestMain {
         for (Account account : accountsList) {
             System.out.println(account.toString());
         }
+
+        Account savings2 = new SavingsAccount();
+        Account cheque2  = new ChequeAccount();
+        Account fixed2   = new FixedDepositAccount();
+
+        savings2.setAccountNumber("777777777");
+        cheque2.setAccountNumber("3333333333");
+        fixed2.setAccountNumber("4444444444");
+        cheque2.setBalance(2.00);
+
+        Map<String, Account> accounts2 = new HashMap<>();
+
+        accounts2.put(savings2.getAccountNumber(), savings2);
+        accounts2.put(cheque2.getAccountNumber(), cheque2);
+        accounts2.put(fixed2.getAccountNumber(), fixed2);
+
+        AccountService accountService = new AccountService();
+
+        try {
+            System.out.println(accountService.findByAccountNumber("3333333333", accounts2));
+        } catch (Exception e) {
+            System.out.println("Account not found " + e.getMessage());
+        }
+
     }
 
     // --------- tiny helpers for cleaner output ----------
